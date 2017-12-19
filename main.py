@@ -4,6 +4,7 @@ from scipy import spatial
 import gensim.models as gsm
 import numpy as np
 from imdb import IMDb
+import pandas as pd
 
 print("Loading Emoji2Vec")
 e2v = gsm.KeyedVectors.load_word2vec_format("models/emoji2vec.bin", binary=True)
@@ -46,13 +47,19 @@ def preprocess(word):
 	word = word.replace("'s", "")
 	word = word.replace(",", "")
 	word = word.replace(".", "")
+	word = word.replace("!", "")
+	word = word.replace("-", "")
 	return word
 
 def emoji_actor(id):
 	ia = IMDb()
 	actor = ia.get_person(id, info="filmography")
 	emojis = Counter()
-	for el in actor["actor"]:
+	try:
+		films = actor["actor"]
+	except:
+		films = actor["actress"]
+	for el in films:
 		movie = el["title"]
 	# vocab += movie.split()
 	# movie = movie.lower()
@@ -74,9 +81,25 @@ def emoji_actor(id):
 		emojis += Counter(similar_small)
 	emojis = dict(emojis)
 	emojis = dict(sorted(emojis.items(), key=operator.itemgetter(1), reverse=True)[:10])
-	print(emojis)
+	return emojis
 
-print()
-print("Ben Aff")
-print()
-emoji_actor("0000255")
+# df = pd.read_csv("imdb_ids.csv")
+# for i in range(1, 11):
+# 	col = "Emoji " + str(i)
+# 	df[col] = ""
+df = pd.read_csv("Emojis.csv")
+
+for i, row in df.iterrows():
+	if i < 68:
+		continue
+	print(row["Name"])
+	actor = row["ID"][2:]
+	emojis = dict(emoji_actor(actor))
+	print(emojis)
+	emojis = list(emojis.keys())
+	for j in range(10):
+		col = "Emoji " + str(j+1)
+		df.set_value(i, col, emojis[j])
+	df.to_csv("Emojis.csv")
+
+df.to_csv("Emojis.csv")
