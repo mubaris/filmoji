@@ -42,6 +42,10 @@ img.center {
     padding: 20px;
 }
 
+.middle {
+  text-align: center;
+}
+
 .blue {
     color: #185875;
 }
